@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-payagent}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-payagent_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-payagent}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  razorpay-mcp:
+    image: razorpay/mcp:latest
+    ports:
+      - "3000:3000"
+    environment:
+      RAZORPAY_API_KEY: ${RAZORPAY_MCP_TOKEN}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
