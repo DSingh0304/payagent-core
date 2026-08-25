@@ -23,6 +23,8 @@ func (h *CatalogHandler) Search(c *gin.Context) {
 	query := c.Query("q")
 	category := c.Query("category")
 	maxPriceINR, _ := strconv.ParseFloat(c.Query("max_price_inr"), 64)
+	
+	// Convert INR to paise for accurate monetary comparisons
 	maxPricePaise := int64(maxPriceINR * 100)
 
 	products, err := h.CatalogSvc.Search(c.Request.Context(), query, category, maxPricePaise)
@@ -30,8 +32,10 @@ func (h *CatalogHandler) Search(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	if products == nil {
 		products = []models.Product{}
 	}
+	
 	c.JSON(http.StatusOK, gin.H{"products": products, "total": len(products)})
 }

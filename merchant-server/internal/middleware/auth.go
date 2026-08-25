@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AgentAuth validates the X-API-Key header to secure internal agent endpoints
 func AgentAuth(apiKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		key := c.GetHeader("X-API-Key")

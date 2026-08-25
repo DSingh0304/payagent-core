@@ -40,6 +40,7 @@ func (s *CartService) Get(ctx context.Context, sessionID string) (*models.Cart, 
 
 func (s *CartService) save(ctx context.Context, cart *models.Cart) error {
 	data, _ := json.Marshal(cart)
+	// Cache cart state in Redis with a TTL to prevent stale session accumulation
 	return s.Redis.Set(ctx, s.cartKey(cart.SessionID), data, 2*time.Hour).Err()
 }
 
@@ -48,6 +49,7 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 	if err != nil {
 		return nil, fmt.Errorf("product not found: %w", err)
 	}
+
 	if product.Stock < qty {
 		return nil, fmt.Errorf("STOCK_UNAVAILABLE")
 	}
@@ -62,6 +64,7 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 			break
 		}
 	}
+	
 	if !found {
 		cart.Items = append(cart.Items, models.CartItem{
 			ProductID:  product.ID,
@@ -85,16 +88,19 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID string) (*models.Cart, error) {
 	cart, _ := s.Get(ctx, sessionID)
 	newItems := []models.CartItem{}
+	
 	for _, item := range cart.Items {
 		if item.ProductID != productID {
 			newItems = append(newItems, item)
 		}
 	}
 	cart.Items = newItems
+	
 	cart.TotalPaise = 0
 	for _, item := range cart.Items {
 		cart.TotalPaise += item.PricePaise * int64(item.Quantity)
 	}
 	cart.TotalINR = float64(cart.TotalPaise) / 100
+	
 	return cart, s.save(ctx, cart)
 }
