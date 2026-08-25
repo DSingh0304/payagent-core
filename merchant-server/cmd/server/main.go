@@ -4,16 +4,18 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/DSingh0304/payagent-core/merchant-server/internal/config"
 	appdb "github.com/DSingh0304/payagent-core/merchant-server/internal/db"
 	"github.com/DSingh0304/payagent-core/merchant-server/internal/handlers"
 	"github.com/DSingh0304/payagent-core/merchant-server/internal/middleware"
 	"github.com/DSingh0304/payagent-core/merchant-server/internal/services"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
 	cfg := config.Load()
+
 	db := appdb.NewPostgresPool(cfg.PostgresDSN)
 	rdb := appdb.NewRedisClient(cfg.RedisURL)
 
@@ -29,9 +31,10 @@ func main() {
 
 	r := gin.Default()
 
+	// Enable CORS for dashboard UI communication
 	r.Use(func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Headers", "Content-Type, X-API-KEY")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, X-API-Key")
 		c.Header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 
 		if c.Request.Method == http.MethodOptions {
@@ -44,7 +47,7 @@ func main() {
 	r.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
 	r.GET("/audit/:session_id", auditH.GetBySession)
 	r.GET("/stream/:session_id", streamH.Stream)
-	r.GET("/agent/:session_id/resume", resumeH.Resume)
+	r.POST("/agent/:session_id/resume", resumeH.Resume)
 
 	api := r.Group("/api/v1", middleware.AgentAuth(cfg.MerchantAPIKey))
 	{
