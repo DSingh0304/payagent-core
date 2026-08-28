@@ -28,5 +28,18 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# Node.js / Next.js
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+
+# Python / AI Agent
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
