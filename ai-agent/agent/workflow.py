@@ -67,7 +67,8 @@ def create_workflow():
             return "tools"
         return "end"
 
-    checkpointer = RedisSaver.from_conn_string(REDIS_URL)
+    redis_conn = redis.from_url(REDIS_URL)
+    checkpointer = RedisSaver(redis_client=redis_conn)
 
     builder = StateGraph(AgentState)
     builder.add_node("agent", agent_node)
