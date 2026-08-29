@@ -3,7 +3,7 @@ import json
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.redis.aio import AsyncRedisSaver
+from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode
 from langgraph.types import interrupt
 
@@ -27,7 +27,7 @@ When you are ready to checkout, state the total and the items clearly, then wait
 
 
 def create_workflow():
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0)
     llm_with_tools = llm.bind_tools(TOOLS)
 
     def agent_node(state: AgentState) -> dict:
@@ -66,7 +66,7 @@ def create_workflow():
             return "tools"
         return "end"
 
-    checkpointer = AsyncRedisSaver(redis_url=REDIS_URL)
+    checkpointer = MemorySaver()
 
     builder = StateGraph(AgentState)
     builder.add_node("agent", agent_node)
