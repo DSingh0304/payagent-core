@@ -37,5 +37,13 @@ func (h *CatalogHandler) Search(c *gin.Context) {
 		products = []models.Product{}
 	}
 	
+	h.AuditSvc.Write(c.Request.Context(), models.AuditLog{
+		SessionID: c.GetHeader("X-Session-ID"),
+		EventType: "CATALOG_SEARCH",
+		Actor:     "agent",
+		Reasoning: "Searched catalog for: " + query,
+		Outcome:   "success",
+	})
+
 	c.JSON(http.StatusOK, gin.H{"products": products, "total": len(products)})
 }
