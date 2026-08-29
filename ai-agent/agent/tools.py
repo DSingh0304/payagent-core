@@ -10,7 +10,7 @@ HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
 
 
 @tool
-def catalog_search(query: str = "", category: str = "", max_price_inr: float = 0) -> dict:
+def catalog_search(session_id: str, query: str = "", category: str = "", max_price_inr: float = 0) -> dict:
     """Search the product catalog. Use this before adding anything to the cart."""
     params = {}
     if query:
@@ -20,7 +20,8 @@ def catalog_search(query: str = "", category: str = "", max_price_inr: float = 0
     if max_price_inr > 0:
         params["max_price_inr"] = max_price_inr
 
-    resp = httpx.get(f"{MERCHANT_BASE_URL}/api/v1/catalog/search", params=params, headers=HEADERS, timeout=10)
+    headers = {**HEADERS, "X-Session-ID": session_id}
+    resp = httpx.get(f"{MERCHANT_BASE_URL}/api/v1/catalog/search", params=params, headers=headers, timeout=10)
     return resp.json()
 
 
