@@ -1,10 +1,9 @@
 import os
 import json
-import redis
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.redis import RedisSaver
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 from langgraph.prebuilt import ToolNode
 from langgraph.types import interrupt
 
@@ -67,8 +66,7 @@ def create_workflow():
             return "tools"
         return "end"
 
-    redis_conn = redis.from_url(REDIS_URL)
-    checkpointer = RedisSaver(redis_client=redis_conn)
+    checkpointer = AsyncRedisSaver(redis_url=REDIS_URL)
 
     builder = StateGraph(AgentState)
     builder.add_node("agent", agent_node)
