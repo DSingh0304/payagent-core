@@ -2,9 +2,9 @@ import os
 import httpx
 from langchain_core.tools import tool
 
-MERCHANT_BASE_URL = os.getenv("MERCHANT_BASE_URL", "http://merchant-server:8080")
+MERCHANT_BASE_URL = os.getenv("MERCHANT_BASE_URL", "http://localhost:8080")
 MERCHANT_API_KEY = os.getenv("MERCHANT_API_KEY", "internal-agent-api-key-change-in-prod")
-RAZORPAY_MCP_URL = os.getenv("RAZORPAY_MCP_URL", "http://razorpay-mcp:3000")
+RAZORPAY_MCP_URL = os.getenv("RAZORPAY_MCP_URL", "http://localhost:3000")
 
 HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
 

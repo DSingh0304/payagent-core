@@ -1,6 +1,6 @@
 import os
 import json
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -17,17 +17,15 @@ Your job is to fulfill a buyer's shopping goal by searching the catalog, buildin
 
 Rules you must follow:
 1. Always search the catalog before adding anything to the cart.
-2. Always provide clear reasoning when adding items.
-3. Before calling razorpay_create_order, you MUST pause and request human approval.
-4. Never exceed the budget stated in the goal.
-5. If stock is unavailable, find an alternative and explain why.
-
-When you are ready to checkout, state the total and the items clearly, then wait for approval.
+2. Only add items to the cart that the user explicitly wants or conceptually matched.
+3. Once the cart is ready, execute razorpay_create_order tool to request user payment.
+4. You MUST stop and wait after calling razorpay_create_order. Do not proceed until approved.
+5. Do not invent products. Only use what is returned by the catalog search.
 """
 
 
 def create_workflow():
-    llm = ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0)
+    llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
     llm_with_tools = llm.bind_tools(TOOLS)
 
     def agent_node(state: AgentState) -> dict:
