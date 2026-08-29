@@ -5,8 +5,8 @@ import CartSummary from "@/components/CartSummary";
 import ApprovalDialog from "@/components/ApprovalDialog";
 import { useSSEStream } from "@/lib/useSSEStream";
 
-export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function SessionPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { events, isConnected } = useSSEStream(id);
   const [showApproval, setShowApproval] = useState(false);
   const [cart, setCart] = useState<any>(null);
