@@ -18,7 +18,7 @@ func NewCatalogService(db *pgxpool.Pool) *CatalogService {
 }
 
 func (s *CatalogService) Search(ctx context.Context, query, category string, maxPricePaise int64) ([]models.Product, error) {
-	sql := `SELECT id, name, description, category, price_paise, stock, tags, created_at FROM products WHERE 1=1`
+	sql := `SELECT id, name, description, category, price_paise, stock, tags, image_url, created_at FROM products WHERE 1=1`
 	args := []interface{}{}
 	i := 1
 
@@ -48,7 +48,7 @@ func (s *CatalogService) Search(ctx context.Context, query, category string, max
 	var products []models.Product
 	for rows.Next() {
 		var p models.Product
-		rows.Scan(&p.ID, &p.Name, &p.Description, &p.Category, &p.PricePaise, &p.Stock, &p.Tags, &p.CreatedAt)
+		rows.Scan(&p.ID, &p.Name, &p.Description, &p.Category, &p.PricePaise, &p.Stock, &p.Tags, &p.ImageURL, &p.CreatedAt)
 		p.PriceINR = float64(p.PricePaise) / 100
 		products = append(products, p)
 	}
@@ -58,9 +58,9 @@ func (s *CatalogService) Search(ctx context.Context, query, category string, max
 func (s *CatalogService) GetByID(ctx context.Context, id string) (*models.Product, error) {
 	var p models.Product
 	err := s.DB.QueryRow(ctx, `
-		SELECT id, name, description, category, price_paise, stock, tags, created_at
+		SELECT id, name, description, category, price_paise, stock, tags, image_url, created_at
 		FROM products WHERE id = $1
-	`, id).Scan(&p.ID, &p.Name, &p.Description, &p.Category, &p.PricePaise, &p.Stock, &p.Tags, &p.CreatedAt)
+	`, id).Scan(&p.ID, &p.Name, &p.Description, &p.Category, &p.PricePaise, &p.Stock, &p.Tags, &p.ImageURL, &p.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
