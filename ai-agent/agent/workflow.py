@@ -44,6 +44,44 @@ def create_workflow():
         })
         return {"decision": decision}
 
+    import httpx
+    from langchain_core.messages import AIMessage
+    
+    MERCHANT_BASE_URL = os.getenv("MERCHANT_BASE_URL", "http://localhost:8080")
+    MERCHANT_API_KEY = os.getenv("MERCHANT_API_KEY", "internal-agent-api-key-change-in-prod")
+    HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
+    MAX_ORDER_INR = float(os.getenv("MAX_ORDER_AMOUNT_INR", "5000"))
+
+    def guardrail_node(state: AgentState, config: dict) -> dict:
+        """Check the cart total and reject if it exceeds the spending limit."""
+        messages = state["messages"]
+        last = messages[-1] if messages else None
+        
+        if last and hasattr(last, "tool_calls"):
+            for tc in last.tool_calls:
+                if tc["name"] == "razorpay_create_order":
+                    amount_paise = tc["args"].get("amount_paise", 0)
+                    amount_inr = amount_paise / 100
+                    if amount_inr > MAX_ORDER_INR:
+                        rejection = AIMessage(content=f"⚠️ GUARDRAIL: Order of ₹{amount_inr:.2f} exceeds the spending limit of ₹{MAX_ORDER_INR:.2f}. Order automatically rejected for safety.")
+                        
+                        try:
+                            session_id = config.get("configurable", {}).get("thread_id")
+                            if session_id:
+                                httpx.post(f"{MERCHANT_BASE_URL}/api/v1/audit", json={
+                                    "session_id": session_id,
+                                    "event_type": "GUARDRAIL_TRIGGERED",
+                                    "actor": "system",
+                                    "reasoning": f"Order of ₹{amount_inr:.2f} exceeds limit of ₹{MAX_ORDER_INR:.2f}",
+                                    "outcome": "blocked"
+                                }, headers=HEADERS, timeout=5)
+                        except Exception as e:
+                            print(f"Failed to post guardrail audit event: {e}")
+                            
+                        return {"messages": [rejection], "completed": True, "guardrail": "blocked"}
+        
+        return {"guardrail": "passed"}
+
     def should_interrupt(state: AgentState) -> str:
         messages = state["messages"]
         last = messages[-1] if messages else None
@@ -59,6 +97,11 @@ def create_workflow():
             return "tools"
 
         return "end"
+        
+    def check_guardrail_result(state: AgentState) -> str:
+        if state.get("guardrail") == "blocked":
+            return "end"
+        return "passed"
 
     def after_approval(state: AgentState) -> str:
         if state.get("decision") == "approved":
@@ -70,15 +113,20 @@ def create_workflow():
     builder = StateGraph(AgentState)
     builder.add_node("agent", agent_node)
     builder.add_node("tools", ToolNode(TOOLS))
+    builder.add_node("guardrail", guardrail_node)
     builder.add_node("human_approval", human_approval_node)
 
     builder.set_entry_point("agent")
     builder.add_conditional_edges("agent", should_interrupt, {
         "tools": "tools",
-        "approval": "human_approval",
+        "approval": "guardrail",
         "end": END,
     })
     builder.add_edge("tools", "agent")
+    builder.add_conditional_edges("guardrail", check_guardrail_result, {
+        "blocked": END,
+        "passed": "human_approval",
+    })
     builder.add_conditional_edges("human_approval", after_approval, {
         "tools": "tools",
         "end": END,
