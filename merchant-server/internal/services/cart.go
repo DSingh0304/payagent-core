@@ -73,6 +73,7 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 			PriceINR:   product.PriceINR,
 			Quantity:   qty,
 			Reasoning:  reasoning,
+			ImageURL:   product.ImageURL,
 		})
 	}
 
