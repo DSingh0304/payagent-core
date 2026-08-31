@@ -1,6 +1,6 @@
-# PayAgent — Autonomous AI Shopping Assistant
+# PayAgent - Autonomous AI Shopping Assistant
 
-> An AI agent that shops for you. Search → Cart → Pay — fully autonomous with human-in-the-loop safety.
+> An AI agent that shops for you. Search → Cart → Pay - fully autonomous with human-in-the-loop safety.
 
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white)
