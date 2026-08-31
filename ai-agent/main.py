@@ -1,11 +1,11 @@
 import os
 from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from api.routes import router
 
 from fastapi.middleware.cors import CORSMiddleware
-
-load_dotenv()
 
 app = FastAPI(title="PayAgent AI Service", version="1.0.0")
 
