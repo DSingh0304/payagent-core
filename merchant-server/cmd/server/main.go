@@ -28,6 +28,8 @@ func main() {
 	auditH := handlers.NewAuditHandler(auditSvc)
 	streamH := handlers.NewStreamHandler(db, rdb)
 	resumeH := handlers.NewResumeHandler(cfg.AgentServiceURL)
+	orderH := handlers.NewOrderHandler(db, auditSvc)
+	analyticsH := handlers.NewAnalyticsHandler(auditSvc)
 
 	r := gin.Default()
 
@@ -45,16 +47,21 @@ func main() {
 	})
 
 	r.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"status": "ok"}) })
+	r.GET("/sessions", auditH.ListSessions)
+	r.GET("/analytics", analyticsH.GetStats)
 	r.GET("/audit/:session_id", auditH.GetBySession)
 	r.GET("/stream/:session_id", streamH.Stream)
 	r.POST("/agent/:session_id/resume", resumeH.Resume)
 
-	api := r.Group("/api/v1", middleware.AgentAuth(cfg.MerchantAPIKey))
+	api := r.Group("/api/v1", middleware.AgentAuth(cfg.MerchantAPIKey), middleware.RateLimit(30))
 	{
 		api.GET("/catalog/search", catalogH.Search)
 		api.GET("/cart/:session_id", cartH.Get)
 		api.POST("/cart/:session_id/add", cartH.AddItem)
 		api.DELETE("/cart/:session_id/remove/:product_id", cartH.RemoveItem)
+		api.POST("/audit", auditH.WriteAudit)
+		api.POST("/orders", orderH.Create)
+		api.POST("/orders/:order_id/confirm", orderH.Confirm)
 	}
 
 	log.Printf("Merchant server starting on port :%s", cfg.Port)
