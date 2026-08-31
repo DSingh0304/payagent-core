@@ -1,4 +1,4 @@
-# 🛒 PayAgent — Autonomous AI Shopping Assistant
+# PayAgent — Autonomous AI Shopping Assistant
 
 > An AI agent that shops for you. Search → Cart → Pay — fully autonomous with human-in-the-loop safety.
 
@@ -10,10 +10,10 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
-## 🎯 What It Does
+## What It Does
 PayAgent is an autonomous shopping assistant that accepts natural language goals (e.g., "Buy running shoes under ₹2000"). It uses LangGraph to independently query a product catalog, build a shopping cart, and present a Razorpay checkout session to the user, strictly adhering to predefined spending guardrails.
 
-## 🏗️ Architecture
+## Architecture
 ```mermaid
 graph TD
     User([User]) -->|Natural Language| Dashboard[Next.js Dashboard]
@@ -26,19 +26,19 @@ graph TD
     Redis -->|SSE| Dashboard
 ```
 
-## ✨ Features
-- 🤖 **Autonomous AI shopping agent** (LangGraph + Groq Llama 3)
-- 🛡️ **Spending guardrails** with configurable limits to auto-reject expensive carts
-- 👤 **Human-in-the-loop** payment approval before final checkout
-- 📊 **Real-time audit trail** via SSE (Server-Sent Events) and Redis Pub/Sub
-- 💳 **Razorpay payment integration** via official MCP (Model Context Protocol) Server
-- 🎤 **Voice input support** using Web Speech API
-- 📈 **Analytics dashboard** for session and order tracking
-- 🔄 **Multi-turn conversations** to tweak cart contents interactively
-- ⚡ **Error recovery** with exponential backoff and retry logic
-- 💰 **Real-time token cost tracking**
+## Features
+- **Autonomous AI shopping agent** (LangGraph + Groq Llama 3)
+- **Spending guardrails** with configurable limits to auto-reject expensive carts
+- **Human-in-the-loop** payment approval before final checkout
+- **Real-time audit trail** via SSE (Server-Sent Events) and Redis Pub/Sub
+- **Razorpay payment integration** via official MCP (Model Context Protocol) Server
+- **Voice input support** using Web Speech API
+- **Analytics dashboard** for session and order tracking
+- **Multi-turn conversations** to tweak cart contents interactively
+- **Error recovery** with exponential backoff and retry logic
+- **Real-time token cost tracking**
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Start Database & Redis
 ```bash
@@ -70,7 +70,7 @@ npm run dev
 ```
 Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🧪 Demo Scenarios
+## Demo Scenarios
 Try these queries on the dashboard:
 1. `Buy running shoes under ₹2500`
 2. `Find wireless earbuds under ₹1500`
@@ -78,7 +78,7 @@ Try these queries on the dashboard:
 4. `Get me a book on system design`
 5. `Buy a smartwatch under ₹2000`
 
-## 🛠️ Tech Stack
+## Tech Stack
 | Component | Technology | Description |
 |-----------|------------|-------------|
 | **Frontend** | Next.js 14, React, Recharts | Sleek dark-mode dashboard with SSE, voice input, and charts. |
@@ -87,7 +87,7 @@ Try these queries on the dashboard:
 | **Database** | PostgreSQL, Redis | Persistent storage and pub/sub event bus. |
 | **LLM / Tooling**| Groq, MCP | Low-latency inference and standard Razorpay integration. |
 
-## 📁 Project Structure
+## Project Structure
 ```
 payagent-core/
 ├── ai-agent/          # Python LangGraph logic
@@ -97,5 +97,5 @@ payagent-core/
 └── docker-compose.yml
 ```
 
-## 📄 License
+## License
 MIT
