@@ -7,6 +7,8 @@ class AgentState(TypedDict):
     goal: str
     messages: Annotated[list, add_messages]
     cart: dict
+    wishlist: list
     pending_action: dict | None
     decision: str | None
     completed: bool
+    guardrail: str | None
