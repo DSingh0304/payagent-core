@@ -20,8 +20,11 @@ type Config struct {
 }
 
 func Load() *Config {
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Println("No .env file found, reading from environment")
+	for _, path := range []string{"../.env", ".env", "../../.env"} {
+		if err := godotenv.Load(path); err == nil {
+			log.Printf("Loaded env from: %s", path)
+			break
+		}
 	}
 	return &Config{
 		Port:                  getEnv("MERCHANT_SERVER_PORT", "8080"),
