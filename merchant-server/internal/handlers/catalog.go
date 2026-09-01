@@ -47,3 +47,19 @@ func (h *CatalogHandler) Search(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"products": products, "total": len(products)})
 }
+
+func (h *CatalogHandler) GetByID(c *gin.Context) {
+	productID := c.Param("product_id")
+	if productID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "product_id is required"})
+		return
+	}
+
+	product, err := h.CatalogSvc.GetByID(c.Request.Context(), productID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}
