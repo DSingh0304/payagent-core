@@ -1,4 +1,5 @@
 import uuid
+from contextlib import asynccontextmanager
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
@@ -7,6 +8,8 @@ import os
 import json
 from datetime import datetime
 import redis as redis_lib
+from langgraph.checkpoint.redis import AsyncRedisSaver
+from langgraph.checkpoint.memory import MemorySaver
 
 from agent.workflow import create_workflow
 from agent.state import AgentState
@@ -15,7 +18,23 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 redis_client = redis_lib.from_url(REDIS_URL)
 
 router = APIRouter()
-graph = create_workflow()
+build_graph = create_workflow()
+
+graph = None
+
+@asynccontextmanager
+async def lifespan(app):
+    global graph
+    try:
+        async with AsyncRedisSaver.from_conn_string(REDIS_URL) as checkpointer:
+            await checkpointer.asetup()
+            graph = build_graph(checkpointer)
+            yield
+    except Exception as e:
+        print(f"Redis checkpointer failed ({e}), falling back to MemorySaver")
+        graph = build_graph(MemorySaver())
+        yield
+
 
 def publish_events(session_id: str, messages: list):
     for msg in messages:

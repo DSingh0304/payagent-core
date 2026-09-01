@@ -3,11 +3,11 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 from fastapi import FastAPI
-from api.routes import router
+from api.routes import router, lifespan
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="PayAgent AI Service", version="1.0.0")
+app = FastAPI(title="PayAgent AI Service", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

@@ -163,7 +163,7 @@ def create_workflow():
         
     def check_guardrail_result(state: AgentState) -> str:
         if state.get("guardrail") == "blocked":
-            return "end"
+            return "blocked"
         return "passed"
 
     def after_approval(state: AgentState) -> str:
@@ -171,28 +171,29 @@ def create_workflow():
             return "tools"
         return "end"
 
-    checkpointer = MemorySaver()
 
-    builder = StateGraph(AgentState)
-    builder.add_node("agent", agent_node)
-    builder.add_node("tools", ToolNode(TOOLS))
-    builder.add_node("guardrail", guardrail_node)
-    builder.add_node("human_approval", human_approval_node)
+    def build_graph(checkpointer):
+        builder = StateGraph(AgentState)
+        builder.add_node("agent", agent_node)
+        builder.add_node("tools", ToolNode(TOOLS))
+        builder.add_node("guardrail", guardrail_node)
+        builder.add_node("human_approval", human_approval_node)
 
-    builder.set_entry_point("agent")
-    builder.add_conditional_edges("agent", should_interrupt, {
-        "tools": "tools",
-        "approval": "guardrail",
-        "end": END,
-    })
-    builder.add_edge("tools", "agent")
-    builder.add_conditional_edges("guardrail", check_guardrail_result, {
-        "blocked": END,
-        "passed": "human_approval",
-    })
-    builder.add_conditional_edges("human_approval", after_approval, {
-        "tools": "tools",
-        "end": END,
-    })
+        builder.set_entry_point("agent")
+        builder.add_conditional_edges("agent", should_interrupt, {
+            "tools": "tools",
+            "approval": "guardrail",
+            "end": END,
+        })
+        builder.add_edge("tools", "agent")
+        builder.add_conditional_edges("guardrail", check_guardrail_result, {
+            "blocked": END,
+            "passed": "human_approval",
+        })
+        builder.add_conditional_edges("human_approval", after_approval, {
+            "tools": "tools",
+            "end": END,
+        })
+        return builder.compile(checkpointer=checkpointer, interrupt_before=["human_approval"])
 
-    return builder.compile(checkpointer=checkpointer, interrupt_before=["human_approval"])
+    return build_graph
