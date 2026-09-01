@@ -23,7 +23,10 @@ func (s *CatalogService) Search(ctx context.Context, query, category string, max
 	i := 1
 
 	if query != "" {
-		sql += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d)", i, i)
+		// Search name, description, AND tags array for maximum recall
+		sql += fmt.Sprintf(` AND (name ILIKE $%d OR description ILIKE $%d OR EXISTS (
+			SELECT 1 FROM unnest(tags) t WHERE t ILIKE $%d
+		))`, i, i, i)
 		args = append(args, "%"+query+"%")
 		i++
 	}
@@ -37,7 +40,7 @@ func (s *CatalogService) Search(ctx context.Context, query, category string, max
 		args = append(args, maxPricePaise)
 		i++
 	}
-	sql += " ORDER BY price_paise ASC"
+	sql += " ORDER BY price_paise ASC LIMIT 20"
 
 	rows, err := s.DB.Query(ctx, sql, args...)
 	if err != nil {
