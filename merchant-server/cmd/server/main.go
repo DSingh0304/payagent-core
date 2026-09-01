@@ -56,6 +56,7 @@ func main() {
 	api := r.Group("/api/v1", middleware.AgentAuth(cfg.MerchantAPIKey), middleware.RateLimit(30))
 	{
 		api.GET("/catalog/search", catalogH.Search)
+		api.GET("/catalog/:product_id", catalogH.GetByID)
 		api.GET("/cart/:session_id", cartH.Get)
 		api.POST("/cart/:session_id/add", cartH.AddItem)
 		api.DELETE("/cart/:session_id/remove/:product_id", cartH.RemoveItem)

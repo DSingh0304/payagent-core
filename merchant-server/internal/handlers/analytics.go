@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/DSingh0304/payagent-core/merchant-server/internal/services"
 	"github.com/gin-gonic/gin"
@@ -41,10 +42,10 @@ func (h *AnalyticsHandler) GetStats(c *gin.Context) {
 		defer rows.Close()
 		var timeline []map[string]interface{}
 		for rows.Next() {
-			var date string
+			var date time.Time
 			var count int
 			if err := rows.Scan(&date, &count); err == nil {
-				timeline = append(timeline, map[string]interface{}{"date": date[:10], "events": count})
+				timeline = append(timeline, map[string]interface{}{"date": date.Format("2006-01-02"), "events": count})
 			}
 		}
 		for i, j := 0, len(timeline)-1; i < j; i, j = i+1, j-1 {

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -49,7 +50,10 @@ func (h *AuditHandler) WriteAudit(c *gin.Context) {
 func (h *AuditHandler) ListSessions(c *gin.Context) {
 	rows, err := h.AuditSvc.DB.Query(c.Request.Context(), `
 		SELECT session_id,
-			   MIN(reasoning) FILTER (WHERE event_type = 'CATALOG_SEARCH') as goal,
+			   COALESCE(
+			       MIN(reasoning) FILTER (WHERE event_type = 'USER_GOAL'),
+			       MIN(reasoning) FILTER (WHERE event_type = 'CATALOG_SEARCH')
+			   ) as goal,
 			   MAX(event_type) as last_event,
 			   COUNT(*) as event_count,
 			   MIN(created_at) as started_at,
@@ -71,7 +75,7 @@ func (h *AuditHandler) ListSessions(c *gin.Context) {
 		var goal *string
 		var lastEvent string
 		var eventCount int
-		var startedAt, lastActivity string
+		var startedAt, lastActivity time.Time
 		
 		if err := rows.Scan(&sessionID, &goal, &lastEvent, &eventCount, &startedAt, &lastActivity); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
