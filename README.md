@@ -83,13 +83,18 @@ Try these queries on the dashboard:
 |-----------|------------|-------------|
 | **Frontend** | Next.js 14, React, Recharts | Sleek dark-mode dashboard with SSE, voice input, and charts. |
 | **Backend API** | Go (Gin) | Blazing fast merchant API managing catalog, cart, and orders. |
-| **AI Agent** | Python, FastAPI, LangGraph | State machine managing tool execution and logic. |
-| **Database** | PostgreSQL, Redis | Persistent storage and pub/sub event bus. |
-| **LLM / Tooling**| Groq, MCP | Low-latency inference and standard Razorpay integration. |
+- **Frontend**: Next.js 14 Dashboard
+- **Backend (Go)**: Streaming Audit Logs (SSE), Cart State (Redis), Database (Postgres)
+- **AI Agent (Python)**: LangGraph state machine, Groq LLM, Razorpay Node MCP
+
+## Running Locally
+1. Start infrastructure: `docker compose up -d`
+2. Run Merchant Server: `cd merchant-server && go run cmd/server/main.go`
+3. Run AI Agent: `cd ai-agent && python3 -m uvicorn main:app --port 8001`
+4. Run Dashboard: `cd dashboard && npm run dev`
 
 ## Project Structure
 ```
-payagent-core/
 ├── ai-agent/          # Python LangGraph logic
 ├── dashboard/         # Next.js UI
 ├── db-init/           # SQL seeds
