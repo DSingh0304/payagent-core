@@ -65,6 +65,7 @@ def publish_events(session_id: str, messages: list):
 
 class RunRequest(BaseModel):
     goal: str
+    budget: int = 5000
     session_id: str | None = None
 
 
@@ -90,7 +91,8 @@ async def run_agent(req: RunRequest):
     initial_state: AgentState = {
         "session_id": session_id,
         "goal": req.goal,
-        "messages": [HumanMessage(content=f"Shopping goal: {req.goal}. My session ID is {session_id}.")],
+        "budget": req.budget,
+        "messages": [HumanMessage(content=f"Shopping goal: {req.goal}. My budget is ₹{req.budget}. My session ID is {session_id}.")],
         "cart": {},
         "wishlist": [],
         "pending_action": None,
@@ -128,6 +130,7 @@ async def run_agent(req: RunRequest):
 
     return {
         "session_id": session_id,
+        "budget": req.budget,
         "status": "awaiting_approval" if is_interrupted else "completed",
         "messages": [
             m.content if not getattr(m, "tool_calls", None) else f"TOOL_CALL: {m.tool_calls}"

@@ -5,6 +5,7 @@ from langgraph.graph.message import add_messages
 class AgentState(TypedDict):
     session_id: str
     goal: str
+    budget: int
     messages: Annotated[list, add_messages]
     cart: dict
     wishlist: list

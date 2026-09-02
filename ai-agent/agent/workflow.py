@@ -78,7 +78,7 @@ Your catalog has 140+ real products across 15 categories:
 - "I changed my mind" → Offer to remove specific items or clear the whole cart.
 - Product not found → Tell the user clearly and offer alternatives in the same category.
 - Out of stock → Apologize and suggest similar in-stock alternatives using `catalog_search`.
-- Order over ₹5000 → The guardrail will block it automatically. Explain this to the user.
+- Order over ₹{BUDGET} → The guardrail will block it automatically. Explain this to the user.
 
 ## Response Formatting
 - Use ₹ for prices (not INR)
@@ -92,7 +92,9 @@ def create_workflow():
     llm_with_tools = llm.bind_tools(TOOLS)
 
     def agent_node(state: AgentState) -> dict:
-        messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]
+        budget = state.get("budget", 5000)
+        system_prompt = SYSTEM_PROMPT.replace("{BUDGET}", str(budget))
+        messages = [SystemMessage(content=system_prompt)] + state["messages"]
         response = llm_with_tools.invoke(messages)
         return {"messages": [response]}
 
@@ -109,7 +111,6 @@ def create_workflow():
     MERCHANT_BASE_URL = os.getenv("MERCHANT_BASE_URL", "http://localhost:8080")
     MERCHANT_API_KEY = os.getenv("MERCHANT_API_KEY", "internal-agent-api-key-change-in-prod")
     HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
-    MAX_ORDER_INR = float(os.getenv("MAX_ORDER_AMOUNT_INR", "5000"))
 
     from langchain_core.runnables import RunnableConfig
     def guardrail_node(state: AgentState, config: RunnableConfig) -> dict:
@@ -117,13 +118,15 @@ def create_workflow():
         messages = state["messages"]
         last = messages[-1] if messages else None
         
+        budget = state.get("budget", 5000)
+        
         if last and hasattr(last, "tool_calls"):
             for tc in last.tool_calls:
                 if tc["name"] == "razorpay_create_order":
                     amount_paise = tc["args"].get("amount_paise", 0)
                     amount_inr = amount_paise / 100
-                    if amount_inr > MAX_ORDER_INR:
-                        rejection = AIMessage(content=f"GUARDRAIL: Order of ₹{amount_inr:.2f} exceeds the spending limit of ₹{MAX_ORDER_INR:.2f}. Order automatically rejected for safety.")
+                    if amount_inr > budget:
+                        rejection = AIMessage(content=f"GUARDRAIL: Order of ₹{amount_inr:.2f} exceeds the spending limit of ₹{budget:.2f}. Order automatically rejected for safety.")
                         
                         try:
                             session_id = config.get("configurable", {}).get("thread_id")
