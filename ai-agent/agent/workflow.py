@@ -97,14 +97,11 @@ def create_workflow():
         return {"messages": [response]}
 
     def human_approval_node(state: AgentState) -> dict:
-        # Pause execution here and surface the pending action to the dashboard.
-        # The workflow will remain suspended in Redis until /resume is called.
-        decision = interrupt({
-            "type": "APPROVAL_REQUIRED",
-            "cart": state.get("cart", {}),
-            "message": "Agent wants to create a Razorpay payment order. Please approve or reject.",
-        })
-        return {"decision": decision}
+        # The graph pauses BEFORE this node due to interrupt_before=["human_approval"].
+        # When /resume is called, it passes {"decision": "approved"} as state update.
+        # So we just pass the decision forward.
+        print(f"DEBUG human_approval_node executing. Decision in state: {state.get('decision')}")
+        return {"decision": state.get("decision")}
 
     import httpx
     from langchain_core.messages import AIMessage
@@ -167,6 +164,7 @@ def create_workflow():
         return "passed"
 
     def after_approval(state: AgentState) -> str:
+        print(f"DEBUG after_approval executing. Decision in state: {state.get('decision')}")
         if state.get("decision") == "approved":
             return "tools"
         return "end"

@@ -150,7 +150,11 @@ async def resume_agent(session_id: str, req: ResumeRequest):
     if not state_snapshot.tasks:
         raise HTTPException(status_code=404, detail="No interrupted agent found for this session")
 
-    result = await graph.ainvoke({"decision": req.decision}, config=config)
+    # Update the state with the human decision
+    await graph.aupdate_state(config, {"decision": req.decision})
+    
+    # Resume the graph from the paused node
+    result = await graph.ainvoke(None, config=config)
 
     messages = result.get("messages", [])
     publish_events(session_id, messages)
