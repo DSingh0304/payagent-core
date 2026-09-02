@@ -48,6 +48,7 @@ func (h *OrderHandler) Create(c *gin.Context) {
 	payloadBytes, _ := json.Marshal(map[string]interface{}{
 		"razorpay_order_id": req.RazorpayOrderID,
 		"id":                orderID,
+		"amount_paise":      req.AmountPaise,
 	})
 
 	h.AuditSvc.Write(c.Request.Context(), models.AuditLog{

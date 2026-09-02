@@ -25,11 +25,12 @@ func (s *AuditService) Write(ctx context.Context, entry models.AuditLog) error {
 	entry.CreatedAt = time.Now()
 
 	// Dual write strategy: persist to PostgreSQL for historical integrity and publish to Redis for real time SSE updates
-	_, err := s.DB.Exec(ctx, `
+	err := s.DB.QueryRow(ctx, `
 		INSERT INTO audit_logs (session_id, event_type, actor, payload, reasoning, outcome, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id
 	`, entry.SessionID, entry.EventType, entry.Actor,
-		entry.Payload, entry.Reasoning, entry.Outcome, entry.CreatedAt)
+		entry.Payload, entry.Reasoning, entry.Outcome, entry.CreatedAt).Scan(&entry.ID)
 	if err != nil {
 		log.Printf("Failed to write audit log: %v", err)
 		return err
