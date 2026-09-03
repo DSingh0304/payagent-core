@@ -33,6 +33,11 @@ func (h *OrderHandler) Create(c *gin.Context) {
 		return
 	}
 
+	if req.AmountPaise <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cart is empty, cannot checkout"})
+		return
+	}
+
 	var orderID string
 	err := h.DB.QueryRow(c.Request.Context(), `
 		INSERT INTO orders (session_id, razorpay_order_id, amount_paise, items, status)
