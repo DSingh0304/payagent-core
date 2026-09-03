@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -15,6 +16,7 @@ import (
 type CartService struct {
 	Redis   *redis.Client
 	Catalog *CatalogService
+	mu      sync.Mutex
 }
 
 func NewCartService(rdb *redis.Client, catalog *CatalogService) *CartService {
@@ -45,6 +47,9 @@ func (s *CartService) save(ctx context.Context, cart *models.Cart) error {
 }
 
 func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, qty int, reasoning string) (*models.Cart, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	product, err := s.Catalog.GetByID(ctx, productID)
 	if err != nil {
 		return nil, fmt.Errorf("product not found: %w", err)
@@ -87,6 +92,9 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 }
 
 func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID string) (*models.Cart, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	cart, _ := s.Get(ctx, sessionID)
 	newItems := []models.CartItem{}
 	
