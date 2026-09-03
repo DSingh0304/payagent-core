@@ -40,19 +40,37 @@ graph TD
 
 ## Quick Start
 
-### 1. Start Database & Redis
+### The Easy Way
+You can run the entire stack using the provided start script.
 ```bash
-docker compose up -d postgres redis
+./start.sh
+```
+This will start Docker, the Go server, the Python AI agent, and the Next.js dashboard in the background.
+The logs are stored in the `logs/` directory.
+
+To stop everything when you're done, run:
+```bash
+./stop.sh
 ```
 
-### 2. Start Go Merchant Server
+Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Manual Setup (Alternative)
+If you prefer running services manually:
+
+**1. Start Database & Redis**
+```bash
+docker compose up -d
+```
+
+**2. Start Go Merchant Server**
 ```bash
 cd merchant-server
 cp .env.example .env
 go run cmd/server/main.go
 ```
 
-### 3. Start Python AI Agent
+**3. Start Python AI Agent**
 ```bash
 cd ai-agent
 python3 -m venv venv
@@ -62,14 +80,12 @@ cp .env.example .env # Add GROQ_API_KEY
 python3 -m uvicorn main:app --port 8001
 ```
 
-### 4. Start Next.js Dashboard
+**4. Start Next.js Dashboard**
 ```bash
 cd dashboard
 npm install
 npm run dev
 ```
-Navigate to [http://localhost:3000](http://localhost:3000)
-
 ## Demo Scenarios
 Try these queries on the dashboard:
 1. `Buy running shoes under ₹2500`
@@ -88,10 +104,9 @@ Try these queries on the dashboard:
 - **AI Agent (Python)**: LangGraph state machine, Groq LLM, Razorpay Node MCP
 
 ## Running Locally
-1. Start infrastructure: `docker compose up -d`
-2. Run Merchant Server: `cd merchant-server && go run cmd/server/main.go`
-3. Run AI Agent: `cd ai-agent && python3 -m uvicorn main:app --port 8001`
-4. Run Dashboard: `cd dashboard && npm run dev`
+To run locally, simply use the background scripts:
+- `./start.sh` to start all infrastructure and servers
+- `./stop.sh` to gracefully stop everything
 
 ## Project Structure
 ```
