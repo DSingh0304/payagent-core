@@ -91,11 +91,17 @@ def create_workflow():
     llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
     llm_with_tools = llm.bind_tools(TOOLS)
 
+    from tenacity import retry, wait_exponential, stop_after_attempt
+
+    @retry(wait=wait_exponential(multiplier=1, min=2, max=15), stop=stop_after_attempt(5))
+    def invoke_llm_with_retry(messages):
+        return llm_with_tools.invoke(messages)
+
     def agent_node(state: AgentState) -> dict:
         budget = state.get("budget", 5000)
         system_prompt = SYSTEM_PROMPT.replace("{BUDGET}", str(budget))
         messages = [SystemMessage(content=system_prompt)] + state["messages"]
-        response = llm_with_tools.invoke(messages)
+        response = invoke_llm_with_retry(messages)
         return {"messages": [response]}
 
     def human_approval_node(state: AgentState) -> dict:
