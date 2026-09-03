@@ -130,10 +130,17 @@ export default function SessionPage({ params }: { params: { id: string } }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
+      if (!res.ok) {
+        const errObj = await res.json().catch(() => ({}));
+        throw new Error(errObj.detail || "Failed to send message to AI Agent.");
+      }
       const data = await res.json();
       const next = { goal: agentData.goal, budget: agentData.budget, messages: data.messages, status: data.status, token_usage: data.token_usage };
       setAgentData(next);
       localStorage.setItem(`agent_response_${id}`, JSON.stringify(next));
+    } catch (error: any) {
+      console.error(error);
+      setAgentData((prev) => ({ ...prev, messages: [...prev.messages, `ERROR: ${error.message}`] }));
     } finally {
       setChatLoading(false);
     }

@@ -195,7 +195,10 @@ async def send_message(session_id: str, req: MessageRequest):
     if not state_snapshot:
         raise HTTPException(status_code=404, detail="Session not found")
         
-    result = await graph.ainvoke({"messages": [HumanMessage(content=req.message)]}, config=config)
+    try:
+        result = await graph.ainvoke({"messages": [HumanMessage(content=req.message)]}, config=config)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent Error: {str(e)}")
     
     new_snapshot = await graph.aget_state(config)
     is_interrupted = bool(new_snapshot.tasks)
