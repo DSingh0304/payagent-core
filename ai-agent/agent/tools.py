@@ -130,8 +130,8 @@ def cart_get(session_id: str) -> dict:
 @tool
 def cart_remove(session_id: str, product_id: str, quantity: int = 0) -> dict:
     """Remove a specific product from the cart or decrease its quantity.
-    Use when user says 'remove X', 'delete Y from cart', 'I don't want X anymore' (set quantity=0).
-    Use when user says 'remove 1 of X', 'decrease quantity' (set quantity to the amount to decrease).
+    If quantity > 0, it decreases the quantity by that amount.
+    If quantity is 0 or not provided, it removes the item entirely.
     """
     url = f"{MERCHANT_BASE_URL}/api/v1/cart/{session_id}/remove/{product_id}"
     if quantity > 0:

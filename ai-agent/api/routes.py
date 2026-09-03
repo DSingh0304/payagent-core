@@ -101,10 +101,7 @@ async def run_agent(req: RunRequest):
         "guardrail": None,
     }
 
-    try:
-        result = await graph.ainvoke(initial_state, config=config)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent Error: {str(e)}")
+    result = await graph.ainvoke(initial_state, config=config)
 
     state_snapshot = await graph.aget_state(config)
     is_interrupted = bool(state_snapshot.tasks)
@@ -160,10 +157,7 @@ async def resume_agent(session_id: str, req: ResumeRequest):
     await graph.aupdate_state(config, {"decision": req.decision})
     
     # Resume the graph from the paused node
-    try:
-        result = await graph.ainvoke(None, config=config)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Agent Error: {str(e)}")
+    result = await graph.ainvoke(None, config=config)
 
     messages = result.get("messages", [])
     publish_events(session_id, messages)
