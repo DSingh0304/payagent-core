@@ -28,32 +28,30 @@ graph TD
 
 ## Features
 - **Autonomous AI shopping agent** (LangGraph + Groq Llama 3)
-- **Spending guardrails** with configurable limits to auto-reject expensive carts
-- **Human-in-the-loop** payment approval before final checkout
-- **Real-time audit trail** via SSE (Server-Sent Events) and Redis Pub/Sub
-- **Razorpay payment integration** via official MCP (Model Context Protocol) Server
-- **Voice input support** using Web Speech API
-- **Analytics dashboard** for session and order tracking
-- **Multi-turn conversations** to tweak cart contents interactively
-- **Error recovery** with exponential backoff and retry logic
-- **Real-time token cost tracking**
+- **Live Cart Context Injection**: Agent dynamically queries Redis for live cart state to prevent hallucinations.
+- **Robust Error Recovery**: API rate limits handled gracefully using `tenacity` exponential backoffs.
+- **Spending Guardrails**: Configurable limits to auto-reject expensive carts.
+- **Human-in-the-Loop Checkout**: Final payment approval is safely delegated to the human user.
+- **Real-Time Audit Trail**: Seamless event streaming via Server-Sent Events (SSE) and Redis Pub/Sub.
+- **Razorpay Integration**: Official Razorpay Node MCP (Model Context Protocol) Server for secure checkout.
+- **Voice Input**: Web Speech API integration for hands-free shopping.
+- **Interactive Analytics**: Dashboard for session and order tracking.
 
 ## Quick Start
 
 ### The Easy Way
-You can run the entire stack using the provided start script.
+You can run the entire stack using the provided bash scripts.
 ```bash
 ./start.sh
 ```
-This will start Docker, the Go server, the Python AI agent, and the Next.js dashboard in the background.
-The logs are stored in the `logs/` directory.
+This will start Docker, the Go server, the Python AI agent, and the Next.js dashboard in the background. The logs are cleanly captured in the `logs/` directory.
 
 To stop everything when you're done, run:
 ```bash
 ./stop.sh
 ```
 
-Navigate to [http://localhost:3000](http://localhost:3000)
+Navigate to [http://localhost:3000](http://localhost:3000) to begin!
 
 ### Manual Setup (Alternative)
 If you prefer running services manually:
@@ -86,6 +84,7 @@ cd dashboard
 npm install
 npm run dev
 ```
+
 ## Demo Scenarios
 Try these queries on the dashboard:
 1. `Buy running shoes under ₹2500`
@@ -97,16 +96,12 @@ Try these queries on the dashboard:
 ## Tech Stack
 | Component | Technology | Description |
 |-----------|------------|-------------|
-| **Frontend** | Next.js 14, React, Recharts | Sleek dark-mode dashboard with SSE, voice input, and charts. |
-| **Backend API** | Go (Gin) | Blazing fast merchant API managing catalog, cart, and orders. |
-- **Frontend**: Next.js 14 Dashboard
-- **Backend (Go)**: Streaming Audit Logs (SSE), Cart State (Redis), Database (Postgres)
-- **AI Agent (Python)**: LangGraph state machine, Groq LLM, Razorpay Node MCP
-
-## Running Locally
-To run locally, simply use the background scripts:
-- `./start.sh` to start all infrastructure and servers
-- `./stop.sh` to gracefully stop everything
+| **Frontend** | Next.js 14, React, Recharts | Sleek dashboard with Server-Sent Events (SSE), voice input, and charts. |
+| **Backend API** | Go (Gin), PostgreSQL | Blazing fast merchant API managing catalog, cart logic, and orders. |
+| **Agent Core** | Python, LangGraph | State machine, tool execution, and dynamic context injection. |
+| **LLM Provider** | Groq (Llama 3) | Low-latency inference engine for the conversational interface. |
+| **Caching & Pub/Sub** | Redis | Ephemeral cart states and real-time pub/sub pipeline for audit trails. |
+| **Payments** | Node.js, Razorpay MCP | Secure payment intent creation via Model Context Protocol. |
 
 ## Project Structure
 ```
@@ -114,7 +109,10 @@ To run locally, simply use the background scripts:
 ├── dashboard/         # Next.js UI
 ├── db-init/           # SQL seeds
 ├── merchant-server/   # Go REST APIs
-└── docker-compose.yml
+├── logs/              # Application logs (auto-generated)
+├── start.sh           # Background startup script
+├── stop.sh            # Graceful shutdown script
+└── docker-compose.yml # PostgreSQL and Redis infrastructure
 ```
 
 ## License
