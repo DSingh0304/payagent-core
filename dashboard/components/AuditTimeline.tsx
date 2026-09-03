@@ -1,54 +1,63 @@
 import { AuditEvent } from "@/lib/useSSEStream";
 
-const EVENT_COLORS: Record<string, string> = {
-  CART_ADD: "#6c63ff",
-  CART_REMOVE: "#ef4444",
-  APPROVAL_REQUIRED: "#eab308",
-  ORDER_CREATED: "#22c55e",
+const EVENT_CONFIG: Record<string, { cls: string; badge: string }> = {
+  CART_ADD:             { cls: "event-accent",   badge: "badge-accent"   },
+  CART_REMOVE:          { cls: "event-danger",   badge: "badge-danger"   },
+  APPROVAL_REQUIRED:    { cls: "event-warning",  badge: "badge-warning"  },
+  ORDER_CREATED:        { cls: "event-success",  badge: "badge-success"  },
+  ORDER_CONFIRMED:      { cls: "event-success",  badge: "badge-success"  },
+  PAYMENT_SUCCESS:      { cls: "event-success",  badge: "badge-success"  },
+  GUARDRAIL_TRIGGERED:  { cls: "event-danger",   badge: "badge-danger"   },
+  AGENT_RESPONSE:       { cls: "event-accent",   badge: "badge-neutral"  },
 };
+
+function getConfig(type: string) {
+  if (EVENT_CONFIG[type]) return EVENT_CONFIG[type];
+  if (type?.startsWith("TOOL_CALL_")) return { cls: "event-accent", badge: "badge-accent" };
+  return { cls: "", badge: "badge-neutral" };
+}
 
 export default function AuditTimeline({ events }: { events: AuditEvent[] }) {
   if (events.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-        <div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div>
-        <p>Waiting for agent activity...</p>
+      <div style={{ textAlign: "center", padding: "48px 16px", color: "var(--text-muted)" }}>
+        <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--border-subtle)", margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
+          ⋯
+        </div>
+        <div style={{ fontSize: 13 }}>Waiting for agent activity...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {events.map((ev) => (
-        <div key={ev.id} style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius)",
-          padding: "14px 16px",
-          borderLeft: `3px solid ${EVENT_COLORS[ev.event_type] || "var(--accent)"}`,
-          animation: "fadeIn 0.3s ease",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{
-              fontSize: 11, fontWeight: 600, letterSpacing: "0.05em",
-              color: EVENT_COLORS[ev.event_type] || "var(--accent)",
-              textTransform: "uppercase",
-            }}>
-              {ev.event_type}
-            </span>
-            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-              {new Date(ev.created_at).toLocaleTimeString()}
-            </span>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      {events.map((ev) => {
+        const cfg = getConfig(ev.event_type);
+        const ts = new Date(ev.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        return (
+          <div key={ev.id} className={`timeline-item ${cfg.cls}`}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <span className={`badge ${cfg.badge}`}>{ev.event_type}</span>
+              <span className="font-mono" style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>{ts}</span>
+            </div>
+            {ev.reasoning && (
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, marginTop: 4 }}>
+                {ev.reasoning.length > 200 ? ev.reasoning.substring(0, 200) + "..." : ev.reasoning}
+              </p>
+            )}
+            <div style={{ display: "flex", gap: 12, marginTop: 2 }}>
+              <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                actor:{ev.actor}
+              </span>
+              {ev.outcome && (
+                <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                  outcome:{ev.outcome}
+                </span>
+              )}
+            </div>
           </div>
-          {ev.reasoning && (
-            <p style={{ fontSize: 13, color: "var(--text)", lineHeight: 1.5 }}>{ev.reasoning}</p>
-          )}
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
-            actor: {ev.actor} · outcome: {ev.outcome || "pending"}
-          </div>
-        </div>
-      ))}
-      <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+        );
+      })}
     </div>
   );
 }

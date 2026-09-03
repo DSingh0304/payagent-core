@@ -1,20 +1,25 @@
 "use client";
 import { useState } from "react";
 
-export default function SessionStarter({ onStart }: { onStart: (goal: string) => void }) {
+import VoiceInput from "./VoiceInput";
+
+export default function SessionStarter({ onStart }: { onStart: (goal: string, budget: number) => void }) {
   const [goal, setGoal] = useState("");
+  const [budget, setBudget] = useState(5000);
   const [loading, setLoading] = useState(false);
 
   const examples = [
     "Buy running shoes under ₹2500",
-    "Get a birthday gift for my sister under ₹1000",
-    "Find the cheapest laptop bag in stock",
+    "Find wireless earbuds under ₹1500",
+    "I need a laptop bag for college",
+    "Get me a book on system design",
+    "Buy a smartwatch under ₹2000",
   ];
 
   const submit = async () => {
     if (!goal.trim()) return;
     setLoading(true);
-    await onStart(goal);
+    await onStart(goal, budget);
   };
 
   return (
@@ -30,18 +35,38 @@ export default function SessionStarter({ onStart }: { onStart: (goal: string) =>
         borderRadius: "var(--radius)",
         padding: 24,
       }}>
-        <textarea
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          placeholder="e.g. Buy running shoes under ₹2500"
-          rows={3}
-          style={{
-            width: "100%", background: "var(--surface-2)", border: "1px solid var(--border)",
-            borderRadius: 8, padding: "12px 14px", fontSize: 14, color: "var(--text)",
-            resize: "none", outline: "none", fontFamily: "inherit",
-          }}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-        />
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: 16 }}>
+          <textarea
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            placeholder="e.g. Buy running shoes under ₹2500"
+            rows={3}
+            style={{
+              flex: 1, background: "var(--surface-2)", border: "1px solid var(--border)",
+              borderRadius: 8, padding: "12px 14px", fontSize: 14, color: "var(--text)",
+              resize: "none", outline: "none", fontFamily: "inherit",
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: 120 }}>
+            <div style={{ position: "relative" }}>
+              <span style={{ position: "absolute", left: 12, top: 12, color: "var(--text-muted)", fontSize: 14 }}>₹</span>
+              <input
+                type="number"
+                value={budget}
+                onChange={(e) => setBudget(Number(e.target.value))}
+                placeholder="Budget"
+                style={{
+                  width: "100%", background: "var(--surface-2)", border: "1px solid var(--border)",
+                  borderRadius: 8, padding: "12px 14px 12px 28px", fontSize: 14, color: "var(--text)",
+                  outline: "none", fontFamily: "inherit",
+                }}
+                onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+              />
+            </div>
+            <VoiceInput onTranscript={(text) => setGoal(text)} />
+          </div>
+        </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "12px 0" }}>
           {examples.map((ex) => (
@@ -67,6 +92,15 @@ export default function SessionStarter({ onStart }: { onStart: (goal: string) =>
         >
           {loading ? "Starting agent..." : "Run Agent →"}
         </button>
+
+        <div style={{ marginTop: 20, textAlign: "center", display: "flex", justifyContent: "center", gap: 16 }}>
+          <a href="/sessions" style={{ color: "var(--text-muted)", textDecoration: "underline", fontSize: 13 }}>
+            View past sessions
+          </a>
+          <a href="/analytics" style={{ color: "var(--text-muted)", textDecoration: "underline", fontSize: 13 }}>
+            Analytics Dashboard
+          </a>
+        </div>
       </div>
     </div>
   );
