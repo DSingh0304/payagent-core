@@ -23,9 +23,12 @@ export default function Home() {
   const [budget, setBudget] = useState("5000");
   const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleStart = async () => {
     if (!goal.trim() || loading) return;
     setLoading(true);
+    setError(null);
     try {
       const parsedBudget = Number(budget) || 5000;
       const res = await fetch(`${process.env.NEXT_PUBLIC_AGENT_URL}/agent/run`, {
@@ -33,16 +36,21 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ goal, budget: parsedBudget }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.detail || `Server error ${res.status}`);
+      }
       const data = await res.json();
       localStorage.setItem(`agent_response_${data.session_id}`, JSON.stringify({
-        messages: data.messages,
+        messages: data.messages || [],
         status: data.status,
         goal,
         budget: parsedBudget,
         token_usage: data.token_usage,
       }));
       router.push(`/session/${data.session_id}`);
-    } catch {
+    } catch (err: any) {
+      setError(err.message || "Failed to start agent");
       setLoading(false);
     }
   };
@@ -114,6 +122,12 @@ export default function Home() {
                 </button>
               ))}
             </div>
+
+            {error && (
+              <div style={{ padding: "10px 12px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 6, color: "var(--danger)", fontSize: 13, marginBottom: 16 }}>
+                {error}
+              </div>
+            )}
 
             <button
               className="btn btn-primary"

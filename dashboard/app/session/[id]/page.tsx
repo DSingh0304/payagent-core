@@ -239,7 +239,7 @@ export default function SessionPage({ params }: { params: { id: string } }) {
             {agentData.goal && (
               <div className="terminal-line user">&gt; {agentData.goal}</div>
             )}
-            {agentData.messages.map((msg, i) => {
+            {(agentData?.messages || []).map((msg, i) => {
               const isUser = msg.startsWith("USER:");
               const isTool = msg.includes("[TOOL") || msg.includes("tool_call") || events.some(e => e.event_type?.startsWith("TOOL_CALL") && e.reasoning === msg);
               
