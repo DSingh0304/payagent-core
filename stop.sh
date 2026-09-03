@@ -6,13 +6,9 @@ cd "$(dirname "$0")"
 echo "Stopping services by port..."
 
 # Stop Dashboard (3000)
-DASHBOARD_PID=$(lsof -t -i:3000)
-if [ ! -z "$DASHBOARD_PID" ]; then
-    echo "Stopping Dashboard (PID: $DASHBOARD_PID)..."
-    kill -9 $DASHBOARD_PID 2>/dev/null
-else
-    echo "Dashboard is not running on port 3000."
-fi
+pkill -f "next-server" || true
+pkill -f "next dev" || true
+echo "Dashboard processes killed."
 
 # Stop AI Agent (8001)
 AI_AGENT_PID=$(lsof -t -i:8001)
