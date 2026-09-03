@@ -97,9 +97,23 @@ def create_workflow():
     def invoke_llm_with_retry(messages):
         return llm_with_tools.invoke(messages)
 
-    def agent_node(state: AgentState) -> dict:
+    from langchain_core.runnables import RunnableConfig
+    from agent.tools import cart_get
+    
+    def agent_node(state: AgentState, config: RunnableConfig) -> dict:
         budget = state.get("budget", 5000)
         system_prompt = SYSTEM_PROMPT.replace("{BUDGET}", str(budget))
+        
+        session_id = config.get("configurable", {}).get("thread_id")
+        if session_id:
+            try:
+                cart_data = cart_get.invoke({"session_id": session_id})
+                if isinstance(cart_data, dict) and "error" not in cart_data:
+                    cart_summary = json.dumps(cart_data, indent=2)
+                    system_prompt += f"\n\n--- CURRENT CART STATE ---\n{cart_summary}\n--------------------------\n"
+            except Exception as e:
+                print(f"Failed to fetch cart state: {e}")
+
         messages = [SystemMessage(content=system_prompt)] + state["messages"]
         response = invoke_llm_with_retry(messages)
         return {"messages": [response]}

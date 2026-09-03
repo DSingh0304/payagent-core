@@ -91,7 +91,7 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 	return cart, s.save(ctx, cart)
 }
 
-func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID string) (*models.Cart, error) {
+func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID string, quantityToRemove int) (*models.Cart, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -99,7 +99,17 @@ func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID strin
 	newItems := []models.CartItem{}
 	
 	for _, item := range cart.Items {
-		if item.ProductID != productID {
+		if item.ProductID == productID {
+			if quantityToRemove > 0 {
+				item.Quantity -= quantityToRemove
+			} else {
+				item.Quantity = 0
+			}
+			
+			if item.Quantity > 0 {
+				newItems = append(newItems, item)
+			}
+		} else {
 			newItems = append(newItems, item)
 		}
 	}

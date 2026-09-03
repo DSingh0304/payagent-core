@@ -69,7 +69,7 @@ export default function SessionPage({ params }: { params: { id: string } }) {
 
   const handleRemoveCartItem = async (productId: string) => {
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_MERCHANT_URL}/api/v1/cart/${id}/remove/${productId}`, {
+      await fetch(`${process.env.NEXT_PUBLIC_MERCHANT_URL}/api/v1/cart/${id}/remove/${productId}?qty=1`, {
         method: "DELETE",
         headers: { "X-API-Key": "internal-agent-api-key-change-in-prod" },
       });

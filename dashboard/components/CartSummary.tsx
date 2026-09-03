@@ -37,10 +37,10 @@ export default function CartSummary({ cart, budgetCap = 5000, onRemove }: { cart
               {onRemove && (
                 <button 
                   onClick={() => onRemove(item.product_id)}
-                  style={{ background: "transparent", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: 14, marginLeft: 4 }}
-                  title="Remove manually"
+                  style={{ background: "transparent", border: "none", color: "var(--danger)", cursor: "pointer", fontSize: 20, marginLeft: 4, fontWeight: "bold" }}
+                  title="Decrease quantity by 1"
                 >
-                  ✕
+                  -
                 </button>
               )}
             </div>

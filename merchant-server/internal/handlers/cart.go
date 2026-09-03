@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -64,7 +65,14 @@ func (h *CartHandler) AddItem(c *gin.Context) {
 func (h *CartHandler) RemoveItem(c *gin.Context) {
 	sessionID := c.Param("session_id")
 	productID := c.Param("product_id")
-	cart, err := h.CartSvc.RemoveItem(c.Request.Context(), sessionID, productID)
+
+	qtyStr := c.Query("qty")
+	qty := 0
+	if qtyStr != "" {
+		fmt.Sscanf(qtyStr, "%d", &qty)
+	}
+
+	cart, err := h.CartSvc.RemoveItem(c.Request.Context(), sessionID, productID, qty)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
