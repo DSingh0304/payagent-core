@@ -45,6 +45,7 @@ export default function SessionPage({ params }: { params: { id: string } }) {
     }
   }, [id]);
 
+  // Reactively fetch cart state whenever an SSE event indicates a state mutation
   useEffect(() => {
     const latest = events[events.length - 1];
     if (latest?.event_type === "CART_ADD" || latest?.event_type === "CART_REMOVE" || latest?.event_type?.includes("CART") || latest?.event_type === "PAYMENT_SUCCESS" || latest?.event_type === "ORDER_CONFIRMED") {
@@ -130,6 +131,8 @@ export default function SessionPage({ params }: { params: { id: string } }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
       });
+      
+      // Graceful degradation: catch fatal rate limits and bubble them into the chat UI
       if (!res.ok) {
         const errObj = await res.json().catch(() => ({}));
         throw new Error(errObj.detail || "Failed to send message to AI Agent.");

@@ -42,7 +42,8 @@ func (h *CartHandler) AddItem(c *gin.Context) {
 
 	cart, err := h.CartSvc.AddItem(c.Request.Context(), sessionID, req.ProductID, req.Quantity, req.Reasoning)
 	if err != nil {
-		// Differentiate inventory issues for the client agent to handle accordingly
+		// Differentiate inventory issues (like out-of-stock) for the Python agent.
+		// Returning a 409 Conflict allows the agent to gracefully handle the error and suggest alternatives.
 		if err.Error() == "STOCK_UNAVAILABLE" {
 			c.JSON(http.StatusConflict, gin.H{"error": "STOCK_UNAVAILABLE", "message": "Product out of stock"})
 			return

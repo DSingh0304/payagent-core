@@ -34,6 +34,11 @@ export default function CartSummary({ cart, budgetCap = 5000, onRemove }: { cart
               <div className="font-mono" style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", flexShrink: 0 }}>
                 ₹{(item.price_inr * item.quantity).toLocaleString("en-IN")}
               </div>
+              {/* 
+                Out-of-band state mutation:
+                Clicking this manually alters the cart state. Since our agent dynamically 
+                injects the live Redis state on every turn, it never hallucinates this change.
+              */}
               {onRemove && (
                 <button 
                   onClick={() => onRemove(item.product_id)}
@@ -48,7 +53,11 @@ export default function CartSummary({ cart, budgetCap = 5000, onRemove }: { cart
         )}
       </div>
 
-      {/* Budget Bar */}
+      {/* 
+        Spending Guardrail Visual Feedback:
+        Reactively displays the budget consumption, warning the user if the agent 
+        is approaching or exceeding the strict spending limit.
+      */}
       <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border-subtle)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Budget used</span>

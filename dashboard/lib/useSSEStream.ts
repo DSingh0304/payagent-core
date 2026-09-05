@@ -18,6 +18,7 @@ export function useSSEStream(sessionId: string) {
   const esRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
+    // Establish a long-lived connection to the Go backend's Redis Pub/Sub bridge
     const url = `${process.env.NEXT_PUBLIC_MERCHANT_URL}/stream/${sessionId}`;
     const es = new EventSource(url);
     esRef.current = es;
@@ -27,6 +28,7 @@ export function useSSEStream(sessionId: string) {
     es.addEventListener("audit_log", (e) => {
       const parsed: AuditEvent = JSON.parse(e.data);
       setEvents((prev) => {
+        // Deduplicate events to handle transient network reconnects gracefully
         const exists = prev.find((ev) => ev.id === parsed.id);
         return exists ? prev : [...prev, parsed];
       });

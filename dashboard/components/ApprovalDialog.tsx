@@ -54,6 +54,11 @@ export default function ApprovalDialog({
       <p className="font-mono" style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>
         ₹{total?.toLocaleString("en-IN", { minimumFractionDigits: 2 }) ?? "—"}
       </p>
+      {/* 
+        Human-in-the-Loop Breakpoint:
+        This prevents the autonomous agent from blindly spending money. The LangGraph state machine
+        is fully suspended until the user explicitly clicks Approve, after which we POST to /resume.
+      */}
       <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.6 }}>
         This will initiate a Razorpay payment flow. The agent cannot proceed without your explicit approval.
       </p>

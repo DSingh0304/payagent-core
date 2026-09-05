@@ -28,6 +28,7 @@ func (h *StreamHandler) Stream(c *gin.Context) {
 	c.Header("Connection", "keep-alive")
 	c.Header("Access-Control-Allow-Origin", "*")
 
+	// First, stream historical events from PostgreSQL to instantly hydrate the UI on reload.
 	rows, err := h.DB.Query(c.Request.Context(), `
 		SELECT id, session_id, event_type, actor, payload, reasoning, outcome, created_at
 		FROM audit_logs WHERE session_id = $1 ORDER BY id ASC
@@ -43,6 +44,7 @@ func (h *StreamHandler) Stream(c *gin.Context) {
 		}
 	}
 
+	// Subscribe to Redis for real-time live events emitted by the Python LangGraph agent.
 	sub := h.Redis.Subscribe(c.Request.Context(), "audit:"+sessionID)
 	defer sub.Close()
 	ch := sub.Channel()

@@ -101,6 +101,8 @@ async def run_agent(req: RunRequest):
         "guardrail": None,
     }
 
+    # Execute the LangGraph state machine. If an interrupt occurs (e.g., human-in-the-loop approval),
+    # the graph will pause and return the current state, awaiting a `/resume` call.
     result = await graph.ainvoke(initial_state, config=config)
 
     state_snapshot = await graph.aget_state(config)
@@ -120,6 +122,7 @@ async def run_agent(req: RunRequest):
         }
         redis_client.publish(f"audit:{session_id}", json.dumps(event))
 
+    # Aggregate token usage across all LLM messages in the current run for observability
     total_input_tokens = 0
     total_output_tokens = 0
     for msg in result.get("messages", []):

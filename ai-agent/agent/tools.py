@@ -10,7 +10,11 @@ HEADERS = {"X-API-Key": MERCHANT_API_KEY, "Content-Type": "application/json"}
 
 
 def _request_with_retry(method, url, max_retries=2, **kwargs):
-    """Execute an HTTP request with exponential backoff retry."""
+    """
+    Execute an HTTP request with exponential backoff retry.
+    This safely handles transient network failures when the agent communicates
+    with the Go Merchant Server.
+    """
     kwargs.setdefault("timeout", 10)
     for attempt in range(max_retries + 1):
         try:
