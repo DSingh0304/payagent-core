@@ -92,6 +92,7 @@ func (s *CartService) AddItem(ctx context.Context, sessionID, productID string, 
 }
 
 func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID string, quantityToRemove int) (*models.Cart, error) {
+	// Lock prevents race conditions during concurrent agent tool executions.
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -100,6 +101,7 @@ func (s *CartService) RemoveItem(ctx context.Context, sessionID, productID strin
 	
 	for _, item := range cart.Items {
 		if item.ProductID == productID {
+			// If quantityToRemove is specified, we decrement. Otherwise, it acts as a full removal.
 			if quantityToRemove > 0 {
 				item.Quantity -= quantityToRemove
 			} else {

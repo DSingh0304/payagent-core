@@ -93,6 +93,7 @@ def create_workflow():
 
     from tenacity import retry, wait_exponential, stop_after_attempt
 
+    # Exponential backoff prevents fatal application crashes when hitting LLM API rate limits.
     @retry(wait=wait_exponential(multiplier=1, min=2, max=15), stop=stop_after_attempt(5))
     def invoke_llm_with_retry(messages):
         return llm_with_tools.invoke(messages)
@@ -107,6 +108,8 @@ def create_workflow():
         session_id = config.get("configurable", {}).get("thread_id")
         if session_id:
             try:
+                # Dynamically injecting live cart state from Redis on every turn
+                # guarantees the LLM never hallucinates out-of-band UI quantity changes.
                 cart_data = cart_get.invoke({"session_id": session_id})
                 if isinstance(cart_data, dict) and "error" not in cart_data:
                     cart_summary = json.dumps(cart_data, indent=2)
